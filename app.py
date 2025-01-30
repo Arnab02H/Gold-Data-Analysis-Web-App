@@ -5,6 +5,7 @@ from flask_apscheduler import APScheduler
 import random
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots 
+import requests
 app = Flask(__name__)
 scheduler = APScheduler()
 
