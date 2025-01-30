@@ -2,20 +2,34 @@ import pandas as pd
 import plotly.express as px
 from flask import Flask, render_template
 from flask_apscheduler import APScheduler
-
+import random
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots 
 app = Flask(__name__)
 scheduler = APScheduler()
 
+
+# List of different user-agents to rotate
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Wget/1.21.1 (linux-gnu)",
+    "curl/7.68.0"
+]
+
 def scheduled_task():
-    url = "https://gold-data-analysis-web-app.onrender.com" 
+    url = "https://gold-data-analysis-web-app.onrender.com"
+    headers = {"User-Agent": random.choice(USER_AGENTS)}
+
     try:
-        response = requests.get(url)
-        print(f"Requested {url} - Status Code: {response.status_code}")
+        response = requests.get(url, headers=headers)
+        print(f"Requested {url} - Status Code: {response.status_code} | User-Agent: {headers['User-Agent']}")
     except requests.exceptions.RequestException as e:
         print(f"Error requesting {url}: {e}")
-scheduler.add_job(id='Scheduled Task', func=scheduled_task, trigger='interval', minutes=14)
+
+scheduler.add_job(id="Scheduled Task", func=scheduled_task, trigger="interval", minutes=2)
+
 
 # Read the data
 df = pd.read_csv("Gold_Cleaned_Dataset.csv")
@@ -178,4 +192,4 @@ def month_and_year_analysis():
 if __name__ == '__main__':
     scheduler.init_app(app)  # Initialize APScheduler with Flask app
     scheduler.start()  # Start the scheduler
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
