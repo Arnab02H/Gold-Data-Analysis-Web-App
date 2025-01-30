@@ -1,9 +1,21 @@
 import pandas as pd
 import plotly.express as px
 from flask import Flask, render_template
+from flask_apscheduler import APScheduler
+
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots 
 app = Flask(__name__)
+scheduler = APScheduler()
+
+def scheduled_task():
+    url = "https://gold-data-analysis-web-app.onrender.com" 
+    try:
+        response = requests.get(url)
+        print(f"Requested {url} - Status Code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error requesting {url}: {e}")
+scheduler.add_job(id='Scheduled Task', func=scheduled_task, trigger='interval', minutes=14)
 
 # Read the data
 df = pd.read_csv("Gold_Cleaned_Dataset.csv")
@@ -164,4 +176,6 @@ def month_and_year_analysis():
 
     return render_template('graph4.html', graph_html=graph_html)
 if __name__ == '__main__':
+    scheduler.init_app(app)  # Initialize APScheduler with Flask app
+    scheduler.start()  # Start the scheduler
     app.run(debug=True)
